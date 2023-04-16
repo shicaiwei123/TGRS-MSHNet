@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+python augsburg__shared_specific_fusion.py '../data/augsburg' 'sar+hsi' 'tri_cross_patch_kd_jda_avg_fc_hsi+sar+dsm_hsi_lr_0.001_version_1.pth' 'augsburg_single_fc_class_7_modal_hsi_version_0.pth' 1 0
+python augsburg__shared_specific_fusion.py '../data/augsburg' 'sar+hsi' 'tri_cross_patch_kd_jda_avg_fc_hsi+sar+dsm_hsi_lr_0.001_version_1.pth' 'augsburg_single_fc_class_7_modal_hsi_version_0.pth' 1 1
