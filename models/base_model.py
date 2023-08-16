@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-from lib.model_arch_utils import SPP
 
 mdmb_seed = 7
 couple_seed = 7
@@ -174,110 +173,6 @@ class MDMB_fusion_baseline(nn.Module):
         return x
 
 
-class MDMB_fusion_spp(nn.Module):
-    def __init__(self, input_channel, class_num):
-        super(MDMB_fusion_spp, self).__init__()
-
-        self.block_5 = nn.Sequential(
-            nn.Conv2d(input_channel, 128, kernel_size=1, stride=1, padding=0,
-                      bias=False),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-        )
-
-        self.block_6 = nn.Sequential(nn.Conv2d(128, 64, kernel_size=1, stride=1, padding=0,
-                                               bias=False),
-                                     nn.BatchNorm2d(64),
-                                     nn.ReLU(),
-                                     )
-
-        self.block_7 = nn.Sequential(nn.Conv2d(64, class_num, kernel_size=1, stride=1, padding=0),
-                                     )
-        self.spp = SPP(merge='max')
-        self.fc = nn.Linear(64, class_num, bias=True)
-        self.dropout = nn.Dropout(0.5)
-        self.avgpooling = nn.AdaptiveAvgPool2d((1, 1))
-        self.class_num=class_num
-        for m in self.modules():
-            torch.manual_seed(mdmb_seed)
-            torch.cuda.manual_seed(mdmb_seed)
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
-
-    def forward(self, x):
-        x = self.block_5(x)
-        x_feature = self.block_6(x)
-        x = self.avgpooling(x_feature)
-        # x=self.block_7(x)
-        # x_whole= x.view(x.shape[0], -1)
-        x = x.view(x.shape[0], -1)
-        x_whole = self.fc(x)
-        # x_whole = self.dropout(x_whole)
-
-        x_spp = self.spp(x_feature)
-        feature_num = x_spp.shape[-1]
-        patch_score = torch.zeros(x_spp.shape[0], self.class_num, feature_num)
-        patch_strength = torch.zeros(x_spp.shape[0], feature_num)
-
-        for i in range(feature_num):
-            patch_feature = x_spp[:, :, i]
-            patch_strength[:, i] = torch.mean(patch_feature, dim=1)
-            # patch_feature = torch.unsqueeze(patch_feature, 2)
-            # patch_feature = torch.unsqueeze(patch_feature, 3)
-            # patch_logits = self.block_7(patch_feature)
-            # patch_logits = patch_logits.view(patch_logits.shape[0], -1)
-            patch_logits = self.fc(patch_feature)
-            patch_score[:, :, i] = patch_logits
-
-        return x_whole, patch_score, patch_strength
-
-
-class MDMB_fusion_dad(nn.Module):
-    def __init__(self, input_channel, class_num):
-        super(MDMB_fusion_dad, self).__init__()
-
-        self.block_5 = nn.Sequential(
-            nn.Conv2d(input_channel, 128, kernel_size=1, stride=1, padding=0,
-                      bias=False),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-        )
-
-        self.block_6 = nn.Sequential(nn.Conv2d(128, 64, kernel_size=1, stride=1, padding=0,
-                                               bias=False),
-                                     nn.BatchNorm2d(64),
-                                     nn.ReLU(),
-                                     )
-
-        self.block_7 = nn.Sequential(nn.Conv2d(64, class_num, kernel_size=1, stride=1, padding=0),
-                                     )
-        self.spp = SPP()
-        self.fc = nn.Linear(64, class_num, bias=True)
-        self.dropout = nn.Dropout(0.5)
-        self.avgpooling = nn.AdaptiveAvgPool2d((1, 1))
-        for m in self.modules():
-            torch.manual_seed(mdmb_seed)
-            torch.cuda.manual_seed(mdmb_seed)
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
-
-    def forward(self, x):
-        x = self.block_5(x)
-        x_feature = self.block_6(x)
-        x = self.avgpooling(x_feature)
-        # x_whole = self.block_7(x)
-        # x_whole = torch.flatten(x_whole, 1)
-        x = x.view(x.shape[0], -1)
-        x_whole = self.fc(x)
-        # x_whole = self.dropout(x_whole)
-
-        return x_whole, x_feature
 
 
 class MDMB_fusion_late(nn.Module):
