@@ -2,6 +2,6 @@
 #'''
 #training the fusion model of hsi and lidar
 #'''
-python huston2013_multi_train.py '../data/huston2013' 'hsi+lidar' 0
-python huston2013_multi_train.py '../data/huston2013' 'hsi+lidar' 1
-python huston2013_multi_train.py '../data/huston2013' 'hsi+lidar' 2
+python huston2013_multi_train.py '../data/huston2013' 'hsi+lidar' 0 0
+python huston2013_multi_train.py '../data/huston2013' 'hsi+lidar' 0 1
+python huston2013_multi_train.py '../data/huston2013' 'hsi+lidar' 0 2

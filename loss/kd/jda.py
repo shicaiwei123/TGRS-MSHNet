@@ -49,6 +49,8 @@ class JDA(nn.Module):
 
     def forward(self, feature_student, feature_teacher, logit_student, logit_teacher):
         # calculate D1(X_u,X_v)
+        feature_student = feature_student.view(feature_student.shape[0], -1)
+        feature_teacher = feature_teacher.view(feature_teacher.shape[0], -1)
         D1 = self.mmd_loss(feature_student, feature_teacher)
 
         # calculate D2(Y|X_u,Y|X_v)

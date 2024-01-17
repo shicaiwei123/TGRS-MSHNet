@@ -17,7 +17,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from lib.model_develop_utils import GradualWarmupScheduler, calc_accuracy
-from loss.mmd_loss import MMD_loss
 
 
 def calc_accuracy_hall_infer(model, loader, args, verbose=False, hter=False):
@@ -2368,10 +2367,6 @@ def train_knowledge_distill_fkd(net_dict, cost_dict, optimizer, train_loader, te
     criterionCls = cost_dict['criterionCls']
     criterionKD = cost_dict['criterionKD']
 
-    if torch.cuda.is_available():
-        mmd_loss = MMD_loss().cuda()
-    else:
-        mmd_loss = MMD_loss()
 
     if torch.cuda.is_available():
         pkt_loss = PKTCosSim().cuda()
@@ -2484,7 +2479,7 @@ def train_knowledge_distill_fkd(net_dict, cost_dict, optimizer, train_loader, te
             feature_teacher = feature_teacher.view(feature_teacher.shape[0], -1)
             kd_feature_loss_1 = pa_loss(feature_student, feature_teacher)
             if epoch > 10:
-                mmd_loss_num = mmd_loss(feature_student, feature_teacher)
+                mmd_loss_num = mse_loss(feature_student, feature_teacher)
                 #     add_factor = ((torch.sigmoid(mmd_loss_num) * 1) - 0.5) * 2
                 add_factor = torch.exp(((mmd_loss_num - 0.6) / (0.6 ** 2)))
                 if add_factor >= 1:

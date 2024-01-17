@@ -37,7 +37,7 @@ def deeppix_main(args):
 
     if 'lidar' in args.pair_modalities:
         teacher_model.load_state_dict(
-            torch.load(os.path.join(args.model_root, 'fusion_hsi_lidar.pth')))
+            torch.load(os.path.join(args.model_root, 'fusion_11__hsi_lidar_version_0.pth')))
         teacher_model.eval()
         for param in teacher_model.parameters():
             param.requires_grad = False
